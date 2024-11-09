@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:notepad/theme.dart';
+import 'package:notepad/core/themes/theme.dart';
+import 'package:notepad/views/login_screen.dart';
+import 'package:provider/provider.dart';
+
+import 'viewmodels/auth_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -20,20 +31,11 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Custom Theme Demo',
+      title: 'NotePad',
       theme: materialTheme.light(),
       darkTheme: materialTheme.dark(),
       themeMode: ThemeMode.system,
-      home: const HomeScreen(),
+      home: const LoginScreen(),
     );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox();
   }
 }
