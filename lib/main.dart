@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:notepad/core/themes/theme.dart';
-import 'package:notepad/views/login_screen.dart';
 import 'package:provider/provider.dart';
 
+import 'core/routes/app_router.dart';
 import 'viewmodels/auth_provider.dart';
 
 void main() {
@@ -29,13 +29,13 @@ class MyApp extends StatelessWidget {
       ),
     );
 
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'NotePad',
       theme: materialTheme.light(),
       darkTheme: materialTheme.dark(),
       themeMode: ThemeMode.system,
-      home: const LoginScreen(),
+      routerConfig: AppRouter.router,
     );
   }
 }

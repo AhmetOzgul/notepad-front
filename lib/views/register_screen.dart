@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:notepad/core/constants/app_radius.dart';
-import 'package:notepad/core/constants/navigation_constants.dart';
 import 'package:notepad/core/widgets/custom_black_button.dart';
 import 'package:notepad/core/widgets/custom_textfield.dart';
 import 'package:notepad/viewmodels/auth_provider.dart';
+import 'package:notepad/views/login_screen.dart';
 import 'package:provider/provider.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,13 +48,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 flex: 2,
               ),
               Text(
-                "Hoşgeldiniz!",
+                "Kayıt Ol",
                 style: Theme.of(context).textTheme.titleLarge!.copyWith(
                       fontStyle: FontStyle.italic,
                     ),
               ),
               const Spacer(
                 flex: 2,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: CustomTextField(
+                  hintText: "E-Posta",
+                  controller: TextEditingController(),
+                ),
+              ),
+              const Spacer(
+                flex: 1,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -76,6 +85,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const Spacer(
+                flex: 1,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: CustomTextField(
+                  hintText: "Şifre Tekrar",
+                  controller: TextEditingController(),
+                  isPassword: true,
+                ),
+              ),
+              const Spacer(
                 flex: 3,
               ),
               CustomBlackButton(
@@ -88,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 flex: 1,
               ),
               const LoginOrRegisterWidget(
-                isLogin: true,
+                isLogin: false,
               ),
               const Spacer(
                 flex: 3,
@@ -97,43 +117,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class LoginOrRegisterWidget extends StatelessWidget {
-  const LoginOrRegisterWidget({
-    super.key,
-    required this.isLogin,
-  });
-
-  final bool isLogin;
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(isLogin ? "Hesabın yok mu?" : "Zaten bir hesabın var mı?",
-            style: Theme.of(context).textTheme.bodyLarge),
-        InkWell(
-          borderRadius: AppRadius.extraLarge,
-          onTap: () {
-            context.go(isLogin
-                ? NavigationConstants.registerScreen
-                : NavigationConstants.loginScreen);
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              isLogin ? "Kayıt Ol" : "Giriş Yap",
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge!
-                  .copyWith(fontWeight: FontWeight.w500),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
