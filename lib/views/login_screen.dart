@@ -14,6 +14,9 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+final TextEditingController emailController = TextEditingController();
+final TextEditingController passwordController = TextEditingController();
+
 class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
@@ -60,8 +63,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: CustomTextField(
-                  hintText: "Kullanıcı Adı",
-                  controller: TextEditingController(),
+                  hintText: "E-Posta",
+                  controller: emailController,
                 ),
               ),
               const Spacer(
@@ -71,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: CustomTextField(
                   hintText: "Şifre",
-                  controller: TextEditingController(),
+                  controller: passwordController,
                   isPassword: true,
                 ),
               ),
@@ -79,8 +82,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 flex: 3,
               ),
               CustomBlackButton(
-                onPressed: () {
-                  context.read<AuthProvider>().login();
+                onPressed: () async {
+                  String email = emailController.text;
+                  String password = passwordController.text;
+                  final success =
+                      await context.read<AuthProvider>().login(email, password);
+                  if (success) {
+                    context.go(NavigationConstants.homeScreen);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Kullanıcı adı veya şifre hatalı"),
+                      ),
+                    );
+                  }
                 },
                 hintText: "Giriş Yap",
               ),

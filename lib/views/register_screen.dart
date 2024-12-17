@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notepad/core/constants/app_radius.dart';
 import 'package:notepad/core/widgets/custom_black_button.dart';
 import 'package:notepad/core/widgets/custom_textfield.dart';
-import 'package:notepad/viewmodels/auth_provider.dart';
 import 'package:notepad/views/login_screen.dart';
-import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -99,10 +97,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 flex: 3,
               ),
               CustomBlackButton(
-                onPressed: () {
-                  context.read<AuthProvider>().login();
-                },
-                hintText: "Giriş Yap",
+                onPressed: () {},
+                hintText: "Kayıt Ol",
               ),
               const Spacer(
                 flex: 1,

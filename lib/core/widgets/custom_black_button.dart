@@ -12,7 +12,7 @@ class CustomBlackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: onPressed,
       style: ButtonStyle(
         backgroundColor:
             WidgetStateProperty.all(Theme.of(context).colorScheme.primary),

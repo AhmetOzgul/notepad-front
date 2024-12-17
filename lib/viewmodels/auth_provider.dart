@@ -1,17 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:notepad/models/user_model.dart';
+import 'package:notepad/services/auth_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthProvider extends ChangeNotifier {
-  bool _isAuthenticated = false;
+  final AuthService _authService = AuthService();
 
-  get isAuth => _isAuthenticated;
+  bool _isLoading = false;
+  User? _user;
+  String? _errorMessage;
 
-  void login() {
-    _isAuthenticated = true;
+  bool get isLoading => _isLoading;
+  User? get user => _user;
+  String? get errorMessage => _errorMessage;
+
+  Future<bool> login(String email, String password) async {
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
+    Map<String, dynamic>? loginResponse =
+        await _authService.login(email, password);
+    if (loginResponse != null && loginResponse['status'] == 200) {
+      _user = User.fromJson(loginResponse['data']['user']);
+
+      final token = loginResponse['data']['token'];
+      final expiryInSeconds = loginResponse['data']['expires'];
+
+      saveToken(token, expiryInSeconds);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = loginResponse?['message'] ??
+          "Login failed. Please check your credentials.";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
-  void logout() {
-    _isAuthenticated = false;
+  Future<void> saveToken(String token, int expiryInSeconds) async {
+    final prefs = await SharedPreferences.getInstance();
+    final expiryTime = DateTime.now().add(Duration(seconds: expiryInSeconds));
+    await prefs.setString('accessToken', token);
+    await prefs.setString('expiryTime', expiryTime.toIso8601String());
+  }
+
+  Future<bool> logout() async {
+    _isLoading = true;
     notifyListeners();
+    Map<String, dynamic>? response = await _authService.logout();
+    if (response != null && response['status'] == 200) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = response?['message'] ?? "Logout failed";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 }
