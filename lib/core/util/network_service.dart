@@ -55,7 +55,12 @@ class NetworkService {
             return handler.resolve(retryResponse);
           }
         }
-        handler.next(e);
+
+        if (e.response != null) {
+          return handler.resolve(e.response!);
+        } else {
+          return handler.next(e);
+        }
       },
     ));
   }

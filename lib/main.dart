@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'NotePad',
       theme: materialTheme.light(),
-      darkTheme: materialTheme.dark(),
+      //darkTheme: materialTheme.dark(),
       themeMode: ThemeMode.system,
       routerConfig: router,
     );

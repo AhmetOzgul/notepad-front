@@ -40,6 +40,32 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> register(String email, String username, String password) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    Map<String, dynamic>? response =
+        await _authService.register(email, username, password);
+    if (response != null && response['status'] == 200) {
+      _user = User.fromJson(response['data']['user']);
+
+      final token = response['data']['token'];
+      final expiryInSeconds = response['data']['expires'];
+
+      saveToken(token, expiryInSeconds);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = response?['message'] ??
+          "Register failed. Please check your credentials.";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> saveToken(String token, int expiryInSeconds) async {
     final prefs = await SharedPreferences.getInstance();
     final expiryTime = DateTime.now().add(Duration(seconds: expiryInSeconds));

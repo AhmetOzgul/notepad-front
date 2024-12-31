@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notepad/core/constants/navigation_constants.dart';
 import 'package:notepad/views/home_screen.dart';
@@ -26,17 +27,40 @@ class AppRouter {
       routes: [
         GoRoute(
           path: NavigationConstants.loginScreen,
-          builder: (context, state) => const LoginScreen(),
+          pageBuilder: (context, state) =>
+              _fadeScaleTransitionPage(const LoginScreen(), state),
         ),
         GoRoute(
           path: NavigationConstants.registerScreen,
-          builder: (context, state) => const RegisterScreen(),
+          pageBuilder: (context, state) =>
+              _fadeScaleTransitionPage(const RegisterScreen(), state),
         ),
         GoRoute(
           path: NavigationConstants.homeScreen,
-          builder: (context, state) => const HomeScreen(),
+          pageBuilder: (context, state) =>
+              _fadeScaleTransitionPage(const HomeScreen(), state),
         ),
       ],
+    );
+  }
+
+  static CustomTransitionPage _fadeScaleTransitionPage(
+      Widget child, GoRouterState state) {
+    return CustomTransitionPage(
+      key: state.pageKey,
+      child: child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.8, end: 1.0).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut,
+            )),
+            child: child,
+          ),
+        );
+      },
     );
   }
 }

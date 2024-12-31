@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:notepad/core/constants/app_radius.dart';
+import 'package:notepad/core/constants/navigation_constants.dart';
 import 'package:notepad/core/widgets/custom_black_button.dart';
 import 'package:notepad/core/widgets/custom_textfield.dart';
+import 'package:notepad/viewmodels/auth_provider.dart';
 import 'package:notepad/views/login_screen.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,6 +14,11 @@ class RegisterScreen extends StatefulWidget {
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
+
+final TextEditingController emailController = TextEditingController();
+final TextEditingController usernameController = TextEditingController();
+final TextEditingController passwordController = TextEditingController();
+final TextEditingController passwordAgainController = TextEditingController();
 
 class _RegisterScreenState extends State<RegisterScreen> {
   @override
@@ -58,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: CustomTextField(
                   hintText: "E-Posta",
-                  controller: TextEditingController(),
+                  controller: emailController,
                 ),
               ),
               const Spacer(
@@ -68,7 +77,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: CustomTextField(
                   hintText: "Kullanıcı Adı",
-                  controller: TextEditingController(),
+                  controller: usernameController,
                 ),
               ),
               const Spacer(
@@ -78,7 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: CustomTextField(
                   hintText: "Şifre",
-                  controller: TextEditingController(),
+                  controller: passwordController,
                   isPassword: true,
                 ),
               ),
@@ -89,7 +98,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: CustomTextField(
                   hintText: "Şifre Tekrar",
-                  controller: TextEditingController(),
+                  controller: passwordAgainController,
                   isPassword: true,
                 ),
               ),
@@ -97,7 +106,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 flex: 3,
               ),
               CustomBlackButton(
-                onPressed: () {},
+                onPressed: () async {
+                  String email = emailController.text.trim();
+                  String username = usernameController.text.trim();
+                  String password = passwordController.text.trim();
+                  String passwordAgain = passwordAgainController.text.trim();
+
+                  if (password != passwordAgain) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text("Şifreler eşleşmiyor. Lütfen tekrar deneyin."),
+                      ),
+                    );
+                    return;
+                  }
+
+                  final success = await context
+                      .read<AuthProvider>()
+                      .register(email, username, password);
+
+                  if (success) {
+                    context.go(NavigationConstants.homeScreen);
+                  } else {
+                    final errorMessage =
+                        context.read<AuthProvider>().errorMessage ??
+                            'Bilinmeyen bir hata oluştu.';
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(errorMessage),
+                      ),
+                    );
+                  }
+                },
                 hintText: "Kayıt Ol",
               ),
               const Spacer(

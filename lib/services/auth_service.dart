@@ -16,21 +16,21 @@ class AuthService {
         },
       );
 
-      if (response != null && response.statusCode == 200) {
-        var responseData = response.data;
+      if (response != null) {
+        final responseData = response.data;
 
-        if (responseData['status'] == 200) {
+        if (response.statusCode == 200 && responseData['status'] == 200) {
           String token = responseData['data']['token'];
           await NetworkService.instance.setToken(token);
 
           log("Login successful for user: ${responseData['data']['user']['username']}");
           return responseData;
         } else {
-          log("Login failed: ${responseData['message']}");
-          return null;
+          log("Login failed or unexpected status code: ${response.statusCode}");
+          return responseData;
         }
       } else {
-        log("Unexpected response code: ${response?.statusCode}");
+        log("Response is null (Login)");
         return null;
       }
     } catch (e) {
@@ -45,18 +45,19 @@ class AuthService {
         method: RequestMethod.post,
         path: '/users/logout',
       );
-      if (response != null && response.statusCode == 200) {
-        var responseData = response.data;
 
-        if (responseData['status'] == 200) {
+      if (response != null) {
+        final responseData = response.data;
+
+        if (response.statusCode == 200 && responseData['status'] == 200) {
           log("Logout successful");
           return responseData;
         } else {
-          log("Logout failed: ${responseData['message']}");
-          return null;
+          log("Logout failed or unexpected status code: ${response.statusCode}");
+          return responseData;
         }
       } else {
-        log("Unexpected response code: ${response?.statusCode}");
+        log("Response is null (Logout)");
         return null;
       }
     } catch (e) {
@@ -66,7 +67,10 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>?> register(
-      String email, String username, String password) async {
+    String email,
+    String username,
+    String password,
+  ) async {
     try {
       Response? response = await NetworkService.instance.request(
         path: '/users/register',
@@ -78,25 +82,25 @@ class AuthService {
         },
       );
 
-      if (response != null && response.statusCode == 200) {
-        var responseData = response.data;
+      if (response != null) {
+        final responseData = response.data;
 
-        if (responseData['status'] == 200) {
+        if (response.statusCode == 200 && responseData['status'] == 200) {
           String token = responseData['data']['token'];
           await NetworkService.instance.setToken(token);
 
-          log("Login successful for user: ${responseData['data']['user']['username']}");
+          log("Register successful for user: ${responseData['data']['user']['username']}");
           return responseData;
         } else {
-          log("Login failed: ${responseData['message']}");
-          return null;
+          log("Register failed or unexpected status code: ${response.statusCode}");
+          return responseData;
         }
       } else {
-        log("Unexpected response code: ${response?.statusCode}");
+        log("Response is null (Register)");
         return null;
       }
     } catch (e) {
-      log("Login request error: $e");
+      log("Register request error: $e");
       return null;
     }
   }
