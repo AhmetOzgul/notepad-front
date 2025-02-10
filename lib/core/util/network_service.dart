@@ -1,20 +1,25 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:notepad/core/constants/navigation_constants.dart';
 import 'package:notepad/core/enums/request_methods.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NetworkService {
   static final NetworkService _instance = NetworkService._init();
   static NetworkService get instance => _instance;
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
-  Dio? _dio;
+  late final Dio _dio;
   String? _accessToken;
 
   NetworkService._init() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: 'http://192.168.1.105:3000/api',
+        baseUrl: 'http://192.168.1.62:3000/api',
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 10),
         headers: {
@@ -23,7 +28,9 @@ class NetworkService {
       ),
     );
 
-    _dio!.interceptors.add(InterceptorsWrapper(
+    _loadToken();
+
+    _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         if (_accessToken == null) {
           await _loadToken();
@@ -43,7 +50,7 @@ class NetworkService {
           if (refreshed) {
             final opts = e.requestOptions;
             opts.headers['Authorization'] = 'Bearer $_accessToken';
-            final retryResponse = await _dio!.request(
+            final retryResponse = await _dio.request(
               opts.path,
               options: Options(
                 method: opts.method,
@@ -85,7 +92,7 @@ class NetworkService {
     }
 
     try {
-      Response response = await _dio!.post('/refresh-token', data: {
+      Response response = await _dio.post('/refresh-token', data: {
         'refreshToken': refreshToken,
       });
 
@@ -101,27 +108,49 @@ class NetworkService {
     }
   }
 
+  void _handleUnauthorized() {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Oturum süreniz doldu. Lütfen tekrar giriş yapın.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      context.go(NavigationConstants.loginScreen);
+    }
+  }
+
   Future<Response?> request({
     required String path,
     required RequestMethod method,
     Map<String, dynamic>? data,
     Map<String, dynamic>? queryParameters,
+    Map<String, dynamic>? headers,
   }) async {
     try {
-      switch (method) {
-        case RequestMethod.get:
-          return await _dio!.get(path, queryParameters: queryParameters);
-        case RequestMethod.post:
-          return await _dio!.post(path, data: data);
-        case RequestMethod.put:
-          return await _dio!.put(path, data: data);
-        case RequestMethod.delete:
-          return await _dio!.delete(path, data: data);
-        default:
-          throw UnimplementedError('HTTP metodu desteklenmiyor.');
+      final response = await _dio.request(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: Options(
+          method: method.name.toUpperCase(),
+          headers: headers,
+        ),
+      );
+
+      if (response.statusCode == 401) {
+        _handleUnauthorized();
+        return null;
       }
+
+      return response;
     } catch (e) {
-      log('İstek hatası: $e');
+      if (e is DioException && e.response?.statusCode == 401) {
+        _handleUnauthorized();
+        return null;
+      }
+      log('Network Error: $e');
       return null;
     }
   }

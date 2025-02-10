@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notepad/core/constants/navigation_constants.dart';
+import 'package:notepad/models/note_model.dart';
 import 'package:notepad/viewmodels/auth_provider.dart';
+import 'package:notepad/viewmodels/note_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,11 +16,27 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NoteProvider>().getNotes();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final currentUser = authProvider.user;
 
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 35,
+        ),
+      ),
       appBar: AppBar(
         title: Padding(
           padding: const EdgeInsets.only(left: 15),
@@ -116,25 +135,35 @@ class _HomeScreenState extends State<HomeScreen> {
           size: MediaQuery.of(context).size,
           child: Column(
             children: [
-              const SizedBox(
-                height: 10,
-              ),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.8,
-                  padding: const EdgeInsets.all(10),
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                  children: [
-                    NoteListItem(),
-                    NoteListItem(),
-                    NoteListItem(),
-                    NoteListItem(),
-                    NoteListItem(),
-                    NoteListItem(),
-                  ],
-                ),
+              const SizedBox(height: 10),
+              Consumer<NoteProvider>(
+                builder: (context, noteProvider, child) {
+                  if (noteProvider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  return noteProvider.notes.isEmpty
+                      ? const Center(
+                          child: Text('Henüz not eklenmemiş'),
+                        )
+                      : GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.8,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                          ),
+                          itemCount: noteProvider.notes.length,
+                          padding: const EdgeInsets.all(10),
+                          itemBuilder: (context, index) {
+                            final note = noteProvider.notes[index];
+                            return NoteListItem(note: note);
+                          },
+                        );
+                },
               ),
             ],
           ),
@@ -145,8 +174,11 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class NoteListItem extends StatelessWidget {
+  final NoteModel note;
+
   const NoteListItem({
     super.key,
+    required this.note,
   });
 
   @override
@@ -172,23 +204,21 @@ class NoteListItem extends StatelessWidget {
               ],
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text(
-              "Content",
-              style: TextStyle(
-                fontSize: 18,
-              ),
+            child: Text(
+              note.content,
+              style: const TextStyle(fontSize: 18),
+              maxLines: 6,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(
-            height: 5,
+          const SizedBox(height: 5),
+          Text(
+            note.title,
+            style: const TextStyle(fontSize: 20),
           ),
-          const Text(
-            "Başlık",
-            style: TextStyle(fontSize: 20),
-          ),
-          const Text(
-            "Tarih",
-            style: TextStyle(fontSize: 16, color: Colors.black54),
+          Text(
+            DateFormat('d MMM y', 'tr_TR').format(note.date),
+            style: const TextStyle(fontSize: 16, color: Colors.black54),
           ),
         ],
       ),

@@ -3,28 +3,26 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:notepad/core/enums/request_methods.dart';
 import 'package:notepad/core/util/network_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NoteService {
   Future<Map<String, dynamic>?> getNotes() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+
       Response? response = await NetworkService.instance.request(
         path: '/notes/get-notes/',
         method: RequestMethod.get,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
       );
-      if (response != null) {
-        final responseData = response.data;
 
-        if (response.statusCode == 200 && responseData['status'] == 200) {
-          log("Get notes successful");
-          return responseData;
-        } else {
-          log("Get notes failed or unexpected status code: ${response.statusCode}");
-          return responseData;
-        }
-      } else {
-        log("Response is null (Get notes)");
-        return null;
+      if (response != null) {
+        return response.data;
       }
+      return null;
     } catch (e) {
       log("Get notes request error: $e");
       return null;

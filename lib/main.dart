@@ -3,10 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:notepad/core/routes/app_router.dart';
 import 'package:notepad/core/themes/theme.dart';
 import 'package:notepad/viewmodels/auth_provider.dart';
+import 'package:notepad/viewmodels/note_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('tr_TR', null);
 
   final router = await AppRouter.getRouter();
 
@@ -14,6 +17,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => NoteProvider()),
       ],
       child: MyApp(router: router),
     ),

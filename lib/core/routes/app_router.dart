@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notepad/core/constants/navigation_constants.dart';
+import 'package:notepad/core/util/network_service.dart';
 import 'package:notepad/views/home_screen.dart';
 import 'package:notepad/views/login_screen.dart';
-import 'package:notepad/views/note_screen.dart';
+import 'package:notepad/views/note_update_screen.dart';
 import 'package:notepad/views/register_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +23,7 @@ class AppRouter {
     }
 
     return GoRouter(
+      navigatorKey: NetworkService.navigatorKey,
       initialLocation: isTokenValid
           ? NavigationConstants.homeScreen
           : NavigationConstants.loginScreen,
@@ -44,7 +46,7 @@ class AppRouter {
         GoRoute(
           path: NavigationConstants.noteScreen,
           pageBuilder: (context, state) =>
-              _fadeScaleTransitionPage(const NoteScreen(), state),
+              _fadeScaleTransitionPage(const UpdateNoteScreen(), state),
         ),
       ],
     );
