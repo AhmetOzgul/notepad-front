@@ -28,4 +28,34 @@ class NoteService {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>?> createNote({
+    required String title,
+    required String content,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+
+      Response? response = await NetworkService.instance.request(
+        path: '/notes/create/',
+        method: RequestMethod.post,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+        data: {
+          'title': title,
+          'content': content,
+        },
+      );
+
+      if (response != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      log("Create note request error: $e");
+      return null;
+    }
+  }
 }

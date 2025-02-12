@@ -32,4 +32,31 @@ class NoteProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> createNote({
+    required String title,
+    required String content,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _noteService.createNote(
+        title: title,
+        content: content,
+      );
+
+      if (response != null && response['status'] == 200) {
+        await getNotes();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Not oluşturma hatası: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

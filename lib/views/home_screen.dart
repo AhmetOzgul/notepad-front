@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notepad/core/constants/navigation_constants.dart';
 import 'package:notepad/models/note_model.dart';
+import 'package:notepad/models/user_model.dart';
 import 'package:notepad/viewmodels/auth_provider.dart';
 import 'package:notepad/viewmodels/note_provider.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          context.push(NavigationConstants.createNoteScreen);
+        },
         child: Icon(
           Icons.add,
           color: Colors.white,
@@ -46,90 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 5,
         shadowColor: Colors.black,
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.black12,
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'Not Defteri',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    currentUser?.username ?? '',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.black54,
-                        ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Ayarlar'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_outlined, color: Colors.red),
-              title: const Text(
-                'Çıkış Yap',
-                style: TextStyle(color: Colors.red),
-              ),
-              onTap: () async {
-                Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    backgroundColor: Colors.white,
-                    title: const Text('Çıkış Yap'),
-                    content:
-                        const Text('Çıkış yapmak istediğinize emin misiniz?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('İptal'),
-                      ),
-                      TextButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          bool response =
-                              await context.read<AuthProvider>().logout();
-                          if (response) {
-                            context.go(NavigationConstants.loginScreen);
-                          }
-                        },
-                        child: const Text(
-                          'Çıkış Yap',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: CustomDrawer(currentUser: currentUser),
       body: SingleChildScrollView(
         child: SizedBox.fromSize(
           size: MediaQuery.of(context).size,
@@ -173,6 +93,103 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+class CustomDrawer extends StatelessWidget {
+  const CustomDrawer({
+    super.key,
+    required this.currentUser,
+  });
+
+  final User? currentUser;
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.black12,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  'Not Defteri',
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  currentUser?.username ?? '',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.black54,
+                      ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: const Text('Ayarlar'),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.logout_outlined, color: Colors.red),
+            title: const Text(
+              'Çıkış Yap',
+              style: TextStyle(color: Colors.red),
+            ),
+            onTap: () async {
+              Navigator.pop(context);
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: Colors.white,
+                  title: const Text('Çıkış Yap'),
+                  content:
+                      const Text('Çıkış yapmak istediğinize emin misiniz?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('İptal'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        bool response =
+                            await context.read<AuthProvider>().logout();
+                        if (response) {
+                          context.go(NavigationConstants.loginScreen);
+                        }
+                      },
+                      child: const Text(
+                        'Çıkış Yap',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class NoteListItem extends StatelessWidget {
   final NoteModel note;
 
@@ -185,7 +202,7 @@ class NoteListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        context.push(NavigationConstants.noteScreen);
+        context.push(NavigationConstants.updateNoteScreen);
       },
       child: Column(
         children: [
@@ -215,6 +232,7 @@ class NoteListItem extends StatelessWidget {
           Text(
             note.title,
             style: const TextStyle(fontSize: 20),
+            overflow: TextOverflow.ellipsis,
           ),
           Text(
             DateFormat('d MMM y', 'tr_TR').format(note.date),
