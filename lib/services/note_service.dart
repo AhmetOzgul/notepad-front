@@ -58,4 +58,64 @@ class NoteService {
       return null;
     }
   }
+
+  Future<Map<String, dynamic>?> updateNote({
+    required String noteId,
+    required String title,
+    required String content,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+
+      Response? response = await NetworkService.instance.request(
+        path: '/notes/update/',
+        method: RequestMethod.post,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+        data: {
+          'noteId': noteId,
+          'title': title,
+          'content': content,
+        },
+      );
+
+      if (response != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      log("Update note request error: $e");
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> deleteNotes({
+    required List<int> noteIds,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('accessToken');
+
+      Response? response = await NetworkService.instance.request(
+        path: '/notes/delete/',
+        method: RequestMethod.post,
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+        data: {
+          'noteIds': noteIds,
+        },
+      );
+
+      if (response != null) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      log("Delete notes request error: $e");
+      return null;
+    }
+  }
 }

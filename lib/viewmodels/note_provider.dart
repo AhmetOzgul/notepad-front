@@ -59,4 +59,54 @@ class NoteProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updateNote({
+    required String noteId,
+    required String title,
+    required String content,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _noteService.updateNote(
+        noteId: noteId,
+        title: title,
+        content: content,
+      );
+
+      if (response != null && response['status'] == 200) {
+        await getNotes();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Not güncelleme hatası: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deleteNotes({required List<int> noteIds}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _noteService.deleteNotes(noteIds: noteIds);
+
+      if (response != null && response['status'] == 200) {
+        await getNotes();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Not silme hatası: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }

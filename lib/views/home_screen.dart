@@ -16,6 +16,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _isSelectionMode = false;
+  Set<int> _selectedNoteIds = {};
+
   @override
   void initState() {
     super.initState();
@@ -30,63 +33,122 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentUser = authProvider.user;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.push(NavigationConstants.createNoteScreen);
-        },
-        child: Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 35,
-        ),
-      ),
+      floatingActionButton: !_isSelectionMode
+          ? FloatingActionButton(
+              onPressed: () {
+                context.push(NavigationConstants.createNoteScreen);
+              },
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+                size: 35,
+              ),
+            )
+          : FloatingActionButton(
+              onPressed: () async {
+                if (_selectedNoteIds.isNotEmpty) {
+                  bool response = await context
+                      .read<NoteProvider>()
+                      .deleteNotes(noteIds: _selectedNoteIds.toList());
+                  if (response) {
+                    setState(() {
+                      _isSelectionMode = false;
+                      _selectedNoteIds.clear();
+                    });
+                  }
+                }
+              },
+              backgroundColor: Colors.red,
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 35,
+              ),
+            ),
       appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.only(left: 15),
-          child: Text("Merhaba, ${currentUser?.username}"),
-        ),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  setState(() {
+                    _isSelectionMode = false;
+                    _selectedNoteIds.clear();
+                  });
+                },
+              )
+            : null,
+        title: _isSelectionMode
+            ? Text('${_selectedNoteIds.length} not seçildi')
+            : Padding(
+                padding: const EdgeInsets.only(left: 15),
+                child: Text("Merhaba, ${currentUser?.username}"),
+              ),
         backgroundColor: Colors.white,
         elevation: 5,
         shadowColor: Colors.black,
       ),
       drawer: CustomDrawer(currentUser: currentUser),
       body: SingleChildScrollView(
-        child: SizedBox.fromSize(
-          size: MediaQuery.of(context).size,
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Consumer<NoteProvider>(
-                builder: (context, noteProvider, child) {
-                  if (noteProvider.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            Consumer<NoteProvider>(
+              builder: (context, noteProvider, child) {
+                if (noteProvider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  return noteProvider.notes.isEmpty
-                      ? const Center(
-                          child: Text('Henüz not eklenmemiş'),
-                        )
-                      : GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.8,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                          ),
-                          itemCount: noteProvider.notes.length,
-                          padding: const EdgeInsets.all(10),
-                          itemBuilder: (context, index) {
-                            final note = noteProvider.notes[index];
-                            return NoteListItem(note: note);
-                          },
-                        );
-                },
-              ),
-            ],
-          ),
+                return noteProvider.notes.isEmpty
+                    ? const Center(
+                        child: Text('Henüz not eklenmemiş'),
+                      )
+                    : GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.8,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                        ),
+                        itemCount: noteProvider.notes.length,
+                        padding: const EdgeInsets.all(10),
+                        itemBuilder: (context, index) {
+                          final note = noteProvider.notes[index];
+                          return NoteListItem(
+                            note: note,
+                            isSelectionMode: _isSelectionMode,
+                            isSelected: _selectedNoteIds.contains(note.id),
+                            onLongPress: () {
+                              setState(() {
+                                _isSelectionMode = true;
+                                _selectedNoteIds.add(note.id);
+                              });
+                            },
+                            onTap: () {
+                              if (_isSelectionMode) {
+                                setState(() {
+                                  if (_selectedNoteIds.contains(note.id)) {
+                                    _selectedNoteIds.remove(note.id);
+                                    if (_selectedNoteIds.isEmpty) {
+                                      _isSelectionMode = false;
+                                    }
+                                  } else {
+                                    _selectedNoteIds.add(note.id);
+                                  }
+                                });
+                              } else {
+                                context
+                                    .push(NavigationConstants.updateNoteScreen);
+                              }
+                            },
+                          );
+                        },
+                      );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -192,41 +254,71 @@ class CustomDrawer extends StatelessWidget {
 
 class NoteListItem extends StatelessWidget {
   final NoteModel note;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback onLongPress;
+  final VoidCallback onTap;
 
   const NoteListItem({
     super.key,
     required this.note,
+    required this.isSelectionMode,
+    required this.isSelected,
+    required this.onLongPress,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        context.push(NavigationConstants.updateNoteScreen);
-      },
+      onLongPress: onLongPress,
+      onTap: onTap,
       child: Column(
         children: [
-          Container(
-            height: MediaQuery.of(context).size.width / 2 - 40,
-            width: MediaQuery.of(context).size.width / 2 - 40,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  blurRadius: 5,
-                  offset: Offset(0, 6),
+          Stack(
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.width / 2 - 40,
+                width: MediaQuery.of(context).size.width / 2 - 40,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 5,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                  borderRadius: BorderRadius.circular(10),
+                  border: isSelected
+                      ? Border.all(color: Colors.blue, width: 2)
+                      : null,
                 ),
-              ],
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              note.content,
-              style: const TextStyle(fontSize: 18),
-              maxLines: 6,
-              overflow: TextOverflow.ellipsis,
-            ),
+                child: Text(
+                  note.content,
+                  style: const TextStyle(fontSize: 18),
+                  maxLines: 6,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (isSelectionMode)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isSelected ? Colors.blue : Colors.grey.shade200,
+                    ),
+                    child: Icon(
+                      Icons.check,
+                      size: 20,
+                      color: isSelected ? Colors.white : Colors.grey,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 5),
           Text(
