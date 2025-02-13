@@ -25,7 +25,10 @@ class _CreateNoteScreenState extends State<CreateNoteScreen> {
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Not başarıyka kaydedildi.')),
+          const SnackBar(
+            content: Text('Not başarıyla kaydedildi.'),
+            duration: Duration(seconds: 1),
+          ),
         );
       }
       return true;

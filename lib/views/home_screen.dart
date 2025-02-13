@@ -51,6 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       .read<NoteProvider>()
                       .deleteNotes(noteIds: _selectedNoteIds.toList());
                   if (response) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(
+                          '${_selectedNoteIds.length} not başarıyla silindi.'),
+                      duration: Duration(seconds: 1),
+                    ));
                     setState(() {
                       _isSelectionMode = false;
                       _selectedNoteIds.clear();
@@ -139,8 +144,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   }
                                 });
                               } else {
-                                context
-                                    .push(NavigationConstants.updateNoteScreen);
+                                context.push(
+                                  NavigationConstants.updateNoteScreen,
+                                  extra: note,
+                                );
                               }
                             },
                           );
@@ -327,7 +334,7 @@ class NoteListItem extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           Text(
-            DateFormat('d MMM y', 'tr_TR').format(note.date),
+            DateFormat('d MMM y', 'tr_TR').format(note.updatedAt),
             style: const TextStyle(fontSize: 16, color: Colors.black54),
           ),
         ],

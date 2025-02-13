@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:notepad/core/constants/navigation_constants.dart';
 import 'package:notepad/core/util/network_service.dart';
+import 'package:notepad/models/note_model.dart';
 import 'package:notepad/views/create_note_screen.dart';
 import 'package:notepad/views/home_screen.dart';
 import 'package:notepad/views/login_screen.dart';
@@ -46,8 +47,8 @@ class AppRouter {
         ),
         GoRoute(
           path: NavigationConstants.updateNoteScreen,
-          pageBuilder: (context, state) =>
-              _fadeScaleTransitionPage(const UpdateNoteScreen(), state),
+          pageBuilder: (context, state) => _fadeScaleTransitionPage(
+              UpdateNoteScreen(note: state.extra as NoteModel), state),
         ),
         GoRoute(
           path: NavigationConstants.createNoteScreen,
